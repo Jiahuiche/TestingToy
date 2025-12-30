@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSongs, addSong, getSongsByDevice, CONFIG } from '@/lib/store';
+import { getSongs, addSong, getSongsByDevice, CONFIG } from '@/lib/kv-store';
 
 // GET: Obtener todas las canciones
 export async function GET() {
-  const songs = getSongs();
+  const songs = await getSongs();
   return NextResponse.json({ 
     songs,
     stats: {
@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Obtener info del usuario antes de añadir
-    const userSongs = getSongsByDevice(deviceId);
+    const userSongs = await getSongsByDevice(deviceId);
     
-    const result = addSong({ title, artist, link, deviceId });
+    const result = await addSong({ title, artist, link, deviceId });
 
     if (!result.success) {
       return NextResponse.json(

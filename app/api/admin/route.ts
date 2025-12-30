@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { removeSong, clearAllSongs, getSongs, CONFIG } from '@/lib/store';
+import { removeSong, clearAllSongs, getSongs, CONFIG } from '@/lib/kv-store';
 
 // Endpoint de administración protegido
 export async function POST(request: NextRequest) {
@@ -23,14 +23,14 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        const removed = removeSong(songId);
+        const removed = await removeSong(songId);
         return NextResponse.json({ 
           success: removed, 
           message: removed ? 'Canción eliminada' : 'Canción no encontrada' 
         });
 
       case 'clear':
-        clearAllSongs();
+        await clearAllSongs();
         return NextResponse.json({ 
           success: true, 
           message: 'Cola vaciada completamente' 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       case 'list':
         return NextResponse.json({ 
           success: true, 
-          songs: getSongs() 
+          songs: await getSongs() 
         });
 
       default:

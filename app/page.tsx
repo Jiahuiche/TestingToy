@@ -55,56 +55,43 @@ export default function Home() {
     }
   }, [deviceId]);
 
-  // Conectar a SSE para actualizaciones en tiempo real
+  // Polling para actualizaciones (cada 2 segundos)
   useEffect(() => {
     if (!deviceId) return;
 
-    let eventSource: EventSource;
-    let reconnectTimeout: NodeJS.Timeout;
-
-    const connect = () => {
-      setConnectionStatus('connecting');
-      eventSource = new EventSource('/api/stream');
-
-      eventSource.onopen = () => {
+    let isActive = true;
+    
+    const fetchSongs = async () => {
+      try {
         setConnectionStatus('connected');
-        setIsLoading(false);
-      };
-
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.songs) {
-            setSongs(data.songs);
-            // Actualizar conteo de canciones del usuario
-            const userSongs = data.songs.filter((s: Song) => s.deviceId === deviceId);
-            setUserSongsCount(userSongs.length);
-          }
-        } catch (error) {
-          console.error('Error parsing SSE data:', error);
+        const response = await fetch('/api/stream');
+        if (!response.ok) throw new Error('Error fetching');
+        
+        const data = await response.json();
+        if (isActive && data.songs) {
+          setSongs(data.songs);
+          // Actualizar conteo de canciones del usuario
+          const userSongs = data.songs.filter((s: Song) => s.deviceId === deviceId);
+          setUserSongsCount(userSongs.length);
+          setIsLoading(false);
         }
-      };
-
-      eventSource.onerror = () => {
+      } catch (error) {
+        console.error('Error fetching songs:', error);
         setConnectionStatus('disconnected');
-        eventSource.close();
-        // Reconectar después de 3 segundos
-        reconnectTimeout = setTimeout(connect, 3000);
-      };
+      }
     };
 
-    connect();
-    loadUserSongs();
+    // Fetch inicial
+    fetchSongs();
+    
+    // Polling cada 2 segundos
+    const interval = setInterval(fetchSongs, 2000);
 
     return () => {
-      if (eventSource) {
-        eventSource.close();
-      }
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-      }
+      isActive = false;
+      clearInterval(interval);
     };
-  }, [deviceId, loadUserSongs]);
+  }, [deviceId]);
 
   const handleSongAdded = (song: Song) => {
     // La actualización real vendrá por SSE, pero actualizamos localmente para feedback inmediato

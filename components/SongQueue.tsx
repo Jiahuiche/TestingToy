@@ -122,10 +122,10 @@ export default function SongQueue({ songs, currentDeviceId, isLoading }: SongQue
         </div>
       )}
 
-      {/* Indicador de actualización en tiempo real */}
+      {/* Indicador de actualización automática */}
       <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-        Actualización en tiempo real
+        Actualización automática cada 2s
       </div>
     </div>
   );

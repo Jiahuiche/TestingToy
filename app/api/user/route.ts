@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSongsByDevice } from '@/lib/store';
+import { getSongsByDevice } from '@/lib/kv-store';
 
 // GET: Obtener canciones de un dispositivo específico
 export async function GET(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const songs = getSongsByDevice(deviceId);
+  const songs = await getSongsByDevice(deviceId);
   return NextResponse.json({ 
     success: true,
     songs,
